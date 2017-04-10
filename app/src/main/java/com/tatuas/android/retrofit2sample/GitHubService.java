@@ -12,6 +12,7 @@ import retrofit2.http.GET;
 import retrofit2.http.Path;
 
 public interface GitHubService {
+
     @GET("/users/{user}/repos")
     Single<Response<List<Repo>>> listRepos(@Path("user") String user);
 

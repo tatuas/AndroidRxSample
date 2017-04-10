@@ -9,7 +9,6 @@ import android.widget.TextView;
 import com.squareup.moshi.Moshi;
 import com.tatuas.android.retrofit2sample.structure.Repo;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.List;
@@ -18,8 +17,6 @@ import java.util.concurrent.Callable;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
-import io.reactivex.ObservableEmitter;
-import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
@@ -84,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
                 .build()
                 .create(GitHubService.class);
 
-        final Observable<String> ssss33 = Observable.fromCallable(new Callable<String>() {
+        final Observable<String> sampleObservable = Observable.fromCallable(new Callable<String>() {
             @Override
             public String call() throws Exception {
                 final JSONObject json = new JSONObject("{hello:\"bye\"}");
@@ -92,25 +89,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        final Observable<String> ssssss = Observable.create(new ObservableOnSubscribe<String>() {
-            @Override
-            public void subscribe(ObservableEmitter<String> emitter) throws Exception {
-                try {
-                    final JSONObject json = new JSONObject("{hello:\"bye\"}");
-                    emitter.onNext(json.getString("sdf"));
-                    emitter.onComplete();
-                } catch (JSONException e) {
-                    emitter.onError(e);
-                }
-            }
-        });
-
-        disposable.add(ssss33
+        disposable.add(sampleObservable
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<String>() {
                     @Override
                     public void onNext(String value) {
+                        Log.d("sdf", "ss" + value);
                         Log.d("sdf", "ssonNext");
                     }
 
