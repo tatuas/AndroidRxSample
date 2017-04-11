@@ -1,6 +1,7 @@
 package com.tatuas.android.retrofit2sample;
 
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -17,6 +18,7 @@ import java.util.concurrent.Callable;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
@@ -81,34 +83,28 @@ public class MainActivity extends AppCompatActivity {
                 .build()
                 .create(GitHubService.class);
 
-        final Observable<String> sampleObservable = Observable.fromCallable(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                final JSONObject json = new JSONObject("{hello:\"bye\"}");
-                return json.getString("sss0");
-            }
-        });
-
-        disposable.add(sampleObservable
+        disposable.add(gitHub.listRepos("tatuas")
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new DisposableObserver<String>() {
+                .subscribeWith(new DisposableSingleObserver<Response<List<Repo>>>() {
                     @Override
-                    public void onNext(String value) {
-                        Log.d("sdf", "ss" + value);
-                        Log.d("sdf", "ssonNext");
+                    public void onSuccess(Response<List<Repo>> value) {
+                        if (value.isSuccessful()) {
+                            tv1.setText(String.valueOf(value.body().get(0).isPrivate));
+                            tv2.setText(String.valueOf(value.body().get(0).archiveUrl));
+                            tv3.setText(String.valueOf(value.body().get(0).cloneUrl));
+                        } else {
+                            try {
+                                new AlertDialog.Builder(MainActivity.this).setMessage(value.errorBody().string()).show();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        e.printStackTrace();
-                        Log.d("sdf", "ssonError");
-                        Log.d("sdf", "ssbecause:" + e.toString());
-                    }
-
-                    @Override
-                    public void onComplete() {
-                        Log.d("sdf", "ssonComplete");
+                        Log.d("sdf", "because:" + e.toString());
                     }
                 }));
 
@@ -135,28 +131,43 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }));
 
-        disposable.add(gitHub.listRepos("tatuas")
+        disposable.add(sampleObservable1()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new DisposableSingleObserver<Response<List<Repo>>>() {
+                .subscribeWith(new DisposableObserver<String>() {
                     @Override
-                    public void onSuccess(Response<List<Repo>> value) {
-                        if (value.isSuccessful()) {
-                            tv1.setText(String.valueOf(value.body().get(0).isPrivate));
-                            tv2.setText(String.valueOf(value.body().get(0).archiveUrl));
-                            tv3.setText(String.valueOf(value.body().get(0).cloneUrl));
-                        } else {
-                            try {
-                                new AlertDialog.Builder(MainActivity.this).setMessage(value.errorBody().string()).show();
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
+                    public void onNext(String value) {
+                        Log.d("asdf", "value:" + value);
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        Log.d("sdf", "because:" + e.toString());
+                        Log.d("asdf", e.toString());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d("asdf", "complete");
+                    }
+                }));
+
+        disposable.add(sampleObservable2()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<String>() {
+                    @Override
+                    public void onNext(String value) {
+                        Log.d("asdf", "value:" + value);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d("asdf", e.toString());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d("asdf", "complete");
                     }
                 }));
     }
@@ -165,5 +176,26 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         disposable.dispose();
         super.onDestroy();
+    }
+
+    private Observable<String> sampleObservable1() {
+        return Observable.fromCallable(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                SystemClock.sleep(5000);
+                final JSONObject json = new JSONObject("{hello:\"bye\"}");
+                return json.getString("sss0");
+            }
+        });
+    }
+
+    private Observable<String> sampleObservable2() {
+        return Observable.defer(new Callable<ObservableSource<? extends String>>() {
+            @Override
+            public ObservableSource<? extends String> call() throws Exception {
+                SystemClock.sleep(8000);
+                return Observable.just("one", "two", "three", "four", "five");
+            }
+        });
     }
 }
