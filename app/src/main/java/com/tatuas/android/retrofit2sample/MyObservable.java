@@ -17,7 +17,7 @@ import okhttp3.Response;
 
 public class MyObservable {
 
-    // 未解決の課題があるので現状はこのObservable作成方法は使わないほうが無難
+    // 未解決のIssueがあるので現状はこのObservable作成方法は使わないほうが無難
     // https://github.com/ReactiveX/RxJava/issues/4863
     @NonNull
     public static Observable<String> sampleObservable1() {

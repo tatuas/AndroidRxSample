@@ -123,6 +123,8 @@ public class MainActivity extends AppCompatActivity {
                                 e.printStackTrace();
                             }
                         }
+                        RxBus.getInstance().send(123456789);
+                        RxBus.getInstance().send("hello");
                     }
 
                     @Override
@@ -211,6 +213,44 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onComplete() {
                         Log.d("zzz", "complete");
+                    }
+                }));
+
+        disposable.add(RxBus.getInstance().toObservable(String.class)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<String>() {
+                    @Override
+                    public void onNext(String value) {
+                        Log.d("zacks", "value:" + value);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d("zacks", e.toString());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d("zacks", "complete");
+                    }
+                }));
+
+        disposable.add(RxBus.getInstance().toObservable(Integer.class)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<Integer>() {
+                    @Override
+                    public void onNext(Integer value) {
+                        Log.d("zacks", "value:" + value);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d("zacks", e.toString());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d("zacks", "complete");
                     }
                 }));
     }
