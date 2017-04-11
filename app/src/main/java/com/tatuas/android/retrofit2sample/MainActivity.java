@@ -1,7 +1,6 @@
 package com.tatuas.android.retrofit2sample;
 
 import android.os.Bundle;
-import android.os.SystemClock;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -10,20 +9,20 @@ import android.widget.TextView;
 import com.squareup.moshi.Moshi;
 import com.tatuas.android.retrofit2sample.structure.Repo;
 
-import org.json.JSONObject;
+import org.threeten.bp.LocalDateTime;
 
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.concurrent.TimeUnit;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
+import io.reactivex.Flowable;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.observers.DisposableObserver;
 import io.reactivex.observers.DisposableSingleObserver;
 import io.reactivex.schedulers.Schedulers;
+import io.reactivex.subscribers.DisposableSubscriber;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
@@ -69,12 +68,36 @@ public class MainActivity extends AppCompatActivity {
 
     private CompositeDisposable disposable;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
         disposable = new CompositeDisposable();
+
+        disposable.add(Flowable.interval(1000, TimeUnit.MILLISECONDS)
+                .onBackpressureLatest()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableSubscriber<Long>() {
+                    @Override
+                    public void onNext(Long aLong) {
+                        final LocalDateTime now = LocalDateTime.now();
+                        final String visibleTime = now.getHour() + ":" + now.getMinute() + ":" + now.getSecond();
+                        tv12.setText(visibleTime);
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+
+                    }
+
+                    @Override
+                    public void onComplete() {
+
+                    }
+                }));
 
         final GitHubService gitHub = new Retrofit.Builder()
                 .baseUrl("http://api.github.com")
@@ -131,7 +154,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }));
 
-        disposable.add(sampleObservable1()
+        disposable.add(MyObservable.sampleObservable1()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<String>() {
@@ -151,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }));
 
-        disposable.add(sampleObservable2()
+        disposable.add(MyObservable.sampleObservable2()
                 .subscribeOn(Schedulers.newThread())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribeWith(new DisposableObserver<String>() {
@@ -168,6 +191,26 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onComplete() {
                         Log.d("asdf", "complete");
+                    }
+                }));
+
+        disposable.add(MyObservable.sampleObservable3()
+                .subscribeOn(Schedulers.newThread())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribeWith(new DisposableObserver<String>() {
+                    @Override
+                    public void onNext(String value) {
+                        Log.d("zzz", "value:" + value);
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.d("zzz", e.toString());
+                    }
+
+                    @Override
+                    public void onComplete() {
+                        Log.d("zzz", "complete");
                     }
                 }));
     }
@@ -176,26 +219,5 @@ public class MainActivity extends AppCompatActivity {
     public void onDestroy() {
         disposable.dispose();
         super.onDestroy();
-    }
-
-    private Observable<String> sampleObservable1() {
-        return Observable.fromCallable(new Callable<String>() {
-            @Override
-            public String call() throws Exception {
-                SystemClock.sleep(5000);
-                final JSONObject json = new JSONObject("{hello:\"bye\"}");
-                return json.getString("sss0");
-            }
-        });
-    }
-
-    private Observable<String> sampleObservable2() {
-        return Observable.defer(new Callable<ObservableSource<? extends String>>() {
-            @Override
-            public ObservableSource<? extends String> call() throws Exception {
-                SystemClock.sleep(8000);
-                return Observable.just("one", "two", "three", "four", "five");
-            }
-        });
     }
 }
