@@ -35,6 +35,7 @@ public class MyObservable {
     }
 
     // Errorが発生してもしなくても8秒遅れて値を返却する
+    // http://blog.danlew.net/2015/07/23/deferring-observable-code-until-subscription-in-rxjava/
     @NonNull
     public static Observable<String> sampleObservable2() {
         return Observable.defer(new Callable<ObservableSource<? extends String>>() {
