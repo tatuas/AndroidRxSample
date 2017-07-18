@@ -17,8 +17,8 @@ import okhttp3.Response;
 
 public class MyObservable {
 
-    // 未解決のIssueがあるので現状はこのObservable作成方法は使わないほうが無難
     // https://github.com/ReactiveX/RxJava/issues/4863
+    // errorHandler を setup すれば問題ない
     @NonNull
     public static Observable<String> sampleObservable1() {
         return Observable.fromCallable(new Callable<String>() {
